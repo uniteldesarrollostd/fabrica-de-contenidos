@@ -1,0 +1,1494 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La fábrica de contenidos</title>
+<meta name="description" content="Presentación de la fábrica de contenidos del área DIGITAL de UNITEL: seis estaciones que trabajan en ciclo, todos los días.">
+<!-- Publicada en GitHub Pages (DEC-54): la ve quien tiene el link, pero los buscadores no la listan.
+     El publicador (npm run presentacion:publicar) se niega a subirla sin esta línea. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#14161D">
+<style>
+/* ------------------------------------------------------------------
+   Fábrica de contenidos: presentación para reunión.
+   Un solo archivo, sin dependencias externas: funciona sin internet.
+   Tipografía: Bahnschrift (la DIN de Windows, letra de señalética industrial)
+   para títulos y placas; Segoe UI para el texto.
+   ------------------------------------------------------------------ */
+:root {
+  --tinta: #14161D;
+  --tinta-2: #1C1F29;
+  --tinta-3: #262B38;
+  --tinta-linea: #3A4155;
+  --planta: #ECEEF2;
+  --planta-punto: #C3C8D4;
+  --papel: #FFFFFF;
+  --rojo: #D30000;
+  --rojo-legible: #FF5A5A;   /* el rojo de marca no llega a 4,5:1 sobre tinta: este sí */
+  --vino: #45070B;
+  --ia: #2563EB;
+  --ia-suave: #EAF0FF;
+  --verde: #15803D;
+  --ambar: #B45309;
+  --texto: #14161D;
+  --texto-2: #4A5063;
+  --texto-3: #6B7185;
+  --cinta: #2B3040;
+  --cinta-oscura: #363C4F;
+  --cinta-raya: #687089;
+  --f-plancha: "Bahnschrift", "DIN Alternate", "DIN 2014", "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  --f-texto: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --alto-cinta: 88px;
+  --curva: cubic-bezier(.72, 0, .28, 1);
+  --dur: .95s;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(211, 0, 0, .15);
+  background: var(--tinta);
+  color: var(--texto);
+  font-family: var(--f-texto);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--rojo); outline-offset: 3px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Cabecera ---------- */
+.cabecera {
+  position: fixed; inset: 0 0 auto 0; height: 64px; z-index: 6;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(20px, 4.4vw, 72px);
+  pointer-events: none;
+  color: var(--texto);
+  transition: color .4s;
+}
+body[data-tono="oscuro"] .cabecera { color: #ECEDF2; }
+.cabecera > * { pointer-events: auto; }
+.marca { display: flex; align-items: center; gap: 10px; font-family: var(--f-plancha); }
+.marca-u {
+  background: var(--rojo); color: #fff; font-weight: 700; font-size: 17px; letter-spacing: .02em;
+  padding: 4px 10px 3px; border-radius: 999px;
+}
+.marca-d { font-size: 18px; font-weight: 600; }
+.controles { display: flex; align-items: center; gap: 8px; font-family: var(--f-plancha); font-size: 14px; }
+.contador { font-variant-numeric: tabular-nums; margin-right: 6px; opacity: .8; }
+.controles button {
+  background: transparent; border: 1.5px solid currentColor; border-radius: 4px;
+  padding: 5px 10px; cursor: pointer; opacity: .78; font-family: var(--f-plancha); font-size: 14px;
+}
+.controles button:hover, .controles button[aria-pressed="true"] { opacity: 1; }
+.controles button[aria-pressed="true"] { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+
+/* ---------- Diapositivas ---------- */
+.escenario { position: fixed; inset: 0 0 var(--alto-cinta) 0; overflow: hidden; }
+.pista {
+  display: flex; height: 100%;
+  width: calc(var(--n, 11) * 100vw);
+  transform: translateX(calc(var(--i, 0) * -100vw));
+  transition: transform var(--dur) var(--curva);
+  will-change: transform;
+}
+.diapo {
+  flex: 0 0 100vw; height: 100%; position: relative; overflow: hidden;
+  display: grid; grid-template-columns: minmax(320px, 35%) 1fr; align-items: center;
+  gap: clamp(20px, 3vw, 56px);
+  padding: clamp(72px, 10vh, 108px) clamp(20px, 4.4vw, 72px) clamp(16px, 3vh, 36px);
+}
+.diapo.clara {
+  background-color: var(--planta);
+  background-image: radial-gradient(circle, var(--planta-punto) 1.1px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+.diapo.oscura {
+  color: #ECEDF2;
+  background:
+    radial-gradient(circle, rgba(255,255,255,.07) 1px, transparent 1.4px) 0 0 / 22px 22px,
+    radial-gradient(120% 70% at 50% 120%, rgba(211,0,0,.55), rgba(69,7,11,.4) 40%, transparent 68%),
+    var(--tinta);
+}
+
+.texto { position: relative; z-index: 1; max-width: 36rem; }
+/* El número de la estación va al lado del título, como la placa de una máquina. */
+.cabeza { display: grid; grid-template-columns: auto 1fr; column-gap: clamp(12px, 1.2vw, 20px); align-items: start; }
+.numero {
+  font-family: var(--f-plancha); font-weight: 700;
+  font-stretch: 75%;
+  font-size: clamp(56px, 5.8vw, 96px); line-height: .8; margin-top: .02em;
+  color: var(--rojo);
+}
+h1, h2 {
+  font-family: var(--f-plancha); font-weight: 700;
+  font-stretch: 75%;
+  letter-spacing: -.01em; line-height: 1.02; margin: 0 0 .45em;
+  text-wrap: balance;
+}
+h1 { font-size: clamp(48px, 6vw, 96px); line-height: .94; }
+h2 { font-size: clamp(32px, 3.3vw, 56px); }
+.lead {
+  font-size: clamp(16px, 1.32vw, 22px); line-height: 1.5; color: var(--texto-2);
+  margin: 0 0 1.1em; max-width: 34em; text-wrap: pretty;
+}
+.oscura .lead { color: #BAC0CE; }
+.hechos {
+  list-style: none; padding: 0; margin: 0 0 1.3em;
+  display: grid; gap: .55em; font-size: clamp(14px, 1.02vw, 17.5px); line-height: 1.45;
+}
+.hechos li { position: relative; padding-left: 20px; text-wrap: pretty; }
+.hechos li::before {
+  content: ""; position: absolute; left: 0; top: .66em; width: 10px; height: 2px; background: var(--rojo);
+}
+.hechos strong { font-weight: 650; }
+.oscura .hechos { color: #D9DCE5; }
+.oscura .hechos li::before { background: var(--rojo-legible); }
+
+.ya { border-top: 2px solid var(--tinta); padding-top: .7em; font-size: clamp(13px, .95vw, 16px); }
+.ya h3 { font-family: var(--f-plancha); font-size: 1.05em; font-weight: 600; margin: 0 0 .45em; }
+.ya ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .3em; line-height: 1.4; }
+.ya li { display: flex; gap: .6em; align-items: baseline; }
+.ya li::before { content: ""; flex: 0 0 9px; height: 9px; border-radius: 50%; background: var(--verde); transform: translateY(1px); }
+.ya .origen { color: var(--texto-3); white-space: nowrap; }
+
+.fuente-nota { margin-top: 1.2em; font-size: 13px; color: var(--texto-3); }
+.oscura .fuente-nota { color: #8C93A6; }
+.atajo { margin-top: 2.2em; font-family: var(--f-plancha); font-size: 15px; color: #8C93A6; }
+.atajo kbd {
+  font-family: var(--f-plancha); border: 1.5px solid #4A5166; border-radius: 4px; padding: 1px 7px; color: #D9DCE5;
+}
+
+/* ---------- Escenas SVG ---------- */
+.lienzo { position: relative; height: 100%; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.escena { width: 100%; height: 100%; max-height: calc(100vh - var(--alto-cinta) - 120px); display: block; overflow: visible; }
+.escena text { font-family: var(--f-plancha); }
+
+.cinta-base { fill: none; stroke: var(--cinta); stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
+.oscura .cinta-base { stroke: var(--cinta-oscura); }
+.cinta-raya { fill: none; stroke: var(--cinta-raya); stroke-width: 2; stroke-dasharray: 5 11; stroke-linecap: round; }
+.diapo.activa .cinta-raya { animation: raya 1s linear infinite; }
+body.pausado .cinta-raya { animation-play-state: paused !important; }
+@keyframes raya { to { stroke-dashoffset: -16; } }
+.cinta-fantasma { fill: none; stroke: #9AA0B2; stroke-width: 1.5; stroke-dasharray: 6 6; }
+
+.item { color: var(--rojo); }
+
+/* Estaciones del ciclo (escenario oscuro) */
+.estacion rect { fill: var(--tinta-2); stroke: var(--tinta-linea); stroke-width: 1.5; transition: stroke .35s, fill .35s; }
+.estacion.cerca rect { stroke: var(--rojo); fill: #241A20; }
+.estacion .num { fill: var(--rojo); }
+.estacion .num-t { fill: #fff; font-size: 15px; font-weight: 700; }
+.estacion .nom { fill: #ECEDF2; font-size: 17px; font-weight: 600; }
+.centro { fill: #ECEDF2; font-size: 30px; font-weight: 700; font-stretch: 75%; }
+.centro-sub { fill: #8C93A6; font-size: 15px; }
+
+/* Placas de máquina (escenas claras) */
+.placa rect.fondo { fill: var(--papel); stroke: var(--tinta); stroke-width: 1.5; }
+.placa .t { fill: var(--tinta); font-size: 15px; font-weight: 600; }
+.placa .s { fill: var(--texto-2); font-size: 12.5px; font-family: var(--f-texto); }
+.placa.ia rect.fondo { fill: var(--ia-suave); stroke: var(--ia); }
+.placa.ia .t { fill: #1A3F9C; }
+.placa.alerta rect.fondo { stroke: var(--rojo); stroke-dasharray: 5 4; }
+.nota-escena { fill: var(--texto-2); font-size: 14px; font-family: var(--f-texto); }
+.oscura .nota-escena { fill: #8C93A6; }
+
+/* "Hoy" */
+.enredo { fill: none; stroke: #A4AABA; stroke-width: 1.5; stroke-dasharray: 4 5; }
+.herramienta rect { fill: var(--papel); stroke: #8A90A2; stroke-width: 1.2; }
+.herramienta text { fill: var(--texto); font-size: 14px; font-weight: 600; }
+.wa circle { fill: var(--tinta); }
+.wa .t1 { fill: #fff; font-size: 21px; font-weight: 700; }
+.wa .t2 { fill: var(--rojo-legible); font-size: 14px; }
+
+/* Fuentes */
+.tolva rect.fondo { fill: var(--papel); stroke: var(--tinta); stroke-width: 2; }
+.tolva .t { font-size: 18px; font-weight: 700; fill: var(--tinta); }
+.tolva .cifra { font-size: 46px; font-weight: 700; fill: var(--tinta); font-variant-numeric: tabular-nums; font-stretch: 75%; }
+.tolva .s { font-size: 13px; fill: var(--texto-2); font-family: var(--f-texto); }
+.vigia rect.fondo { fill: var(--papel); stroke: var(--rojo); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.vigia .t { font-size: 16px; font-weight: 700; fill: var(--tinta); }
+.vigia .s { font-size: 12.5px; fill: var(--rojo); font-family: var(--f-texto); }
+.vigia .alerta { font-size: 13.5px; fill: var(--texto); font-family: var(--f-texto); transition: opacity .4s; }
+
+/* Producción */
+.leyenda text { font-size: 14px; fill: var(--texto-2); font-family: var(--f-texto); }
+.pieza-caja rect.fondo { fill: var(--papel); stroke: var(--tinta); stroke-width: 2; }
+.pieza-caja .banda { fill: var(--rojo); }
+.pieza-caja .t { fill: #fff; font-size: 15px; font-weight: 700; }
+.puerta rect.fondo { fill: var(--papel); stroke: var(--tinta); stroke-width: 1.5; }
+
+/* Control */
+.porton { fill: none; stroke: var(--tinta); stroke-width: 3; }
+.porton-techo { fill: var(--tinta); }
+.porton-titulo { fill: #fff; font-size: 15px; font-weight: 700; }
+.haz { stroke: var(--rojo); stroke-width: 2; opacity: .18; transition: opacity .15s; }
+.haz.escaneando { opacity: .95; }
+.haz-et { font-size: 13px; fill: var(--texto); font-weight: 600; }
+.semaforo rect { fill: var(--tinta); }
+.semaforo circle { opacity: .22; transition: opacity .2s; }
+.semaforo circle.encendida { opacity: 1; }
+
+/* Cronograma */
+.hora { font-size: 12px; fill: var(--texto-3); font-variant-numeric: tabular-nums; }
+.hora.entera { fill: var(--tinta); font-weight: 700; }
+.fila { font-size: 14px; fill: var(--tinta); font-weight: 600; }
+.hueco { fill: rgba(255,255,255,.55); stroke: #D3D7E0; stroke-width: 1; }
+.corte-hora { stroke: #9AA0B2; stroke-width: 1.5; }
+.programada rect { fill: var(--papel); stroke: var(--tinta); stroke-width: 1.3; }
+.programada .tope { fill: var(--tinta-linea); }
+.programada.urgente .tope { fill: var(--rojo); }
+.programada.urgente rect.cuerpo { stroke: var(--rojo); stroke-width: 2; }
+.ahora line { stroke: var(--rojo); stroke-width: 2; }
+.ahora text { fill: var(--rojo); font-size: 13px; font-weight: 700; }
+.medidor-t { font-size: 14px; font-weight: 600; fill: var(--tinta); }
+.medidor-s { font-size: 12.5px; fill: var(--texto-2); font-family: var(--f-texto); }
+.medidor-fondo { fill: #D7DBE3; }
+.medidor-lleno { fill: var(--tinta); }
+.medidor-lleno.limite { fill: var(--rojo); }
+
+/* Conexiones */
+.conector rect.caja { fill: var(--tinta); }
+.conector .titulo { fill: #fff; font-size: 17px; font-weight: 700; }
+.conector .ranura { fill: var(--tinta-3); transition: fill .35s; }
+.conector .ranura.activa { fill: var(--rojo); }
+.conector .rt { fill: #fff; font-size: 15px; font-weight: 600; }
+.conector .rs { fill: #C9CDD8; font-size: 12px; font-family: var(--f-texto); }
+.salida { fill: none; stroke: #A4AABA; stroke-width: 1.5; }
+.destino rect.fondo { fill: var(--papel); stroke: var(--tinta); stroke-width: 1.5; transition: stroke .25s, fill .25s; }
+.destino.llego rect.fondo { stroke: var(--rojo); fill: #FFF1F1; }
+.destino .t { font-size: 15px; font-weight: 600; fill: var(--tinta); }
+.destino .ok { font-size: 15px; font-weight: 700; fill: var(--verde); opacity: 0; transition: opacity .25s; }
+.destino.llego .ok { opacity: 1; }
+
+/* Analítica (gráfico de énfasis: lo que rindió en rojo, el resto en gris de contexto) */
+.tarjeta { fill: var(--papel); stroke: #D3D7E0; stroke-width: 1.2; }
+.graf-t { font-size: 19px; font-weight: 700; fill: var(--tinta); }
+.graf-s { font-size: 13px; fill: var(--texto-2); font-family: var(--f-texto); }
+.graf-cat { font-size: 15px; fill: var(--tinta); font-family: var(--f-texto); }
+.graf-val { font-size: 14px; fill: var(--tinta); font-weight: 600; font-variant-numeric: tabular-nums; }
+.barra { fill: #7C8396; }
+.barra.enfasis { fill: var(--rojo); }
+.base-eje { stroke: #9AA0B2; stroke-width: 1.2; }
+.mezcla-duro { fill: var(--tinta); }
+.mezcla-resto { fill: #C9CEDA; }
+.tope-linea { stroke: var(--rojo); stroke-width: 2; stroke-dasharray: 4 3; }
+.tope-et { fill: var(--rojo); font-size: 13px; font-weight: 700; }
+.mezcla-et { font-size: 13.5px; font-family: var(--f-texto); }
+
+/* Un día */
+.dia-via { stroke: #B8BDCA; stroke-width: 2; }
+.dia-fila .hora-dia { font-size: 21px; font-weight: 700; fill: var(--texto-3); font-variant-numeric: tabular-nums; transition: fill .3s; }
+.dia-fila .nodo { fill: var(--planta); stroke: #9AA0B2; stroke-width: 2; transition: fill .3s, stroke .3s; }
+.dia-fila .etiqueta rect { fill: #DCE0E8; transition: fill .3s; }
+.dia-fila .etiqueta text { font-size: 13.5px; font-weight: 600; fill: var(--texto-2); transition: fill .3s; }
+.dia-fila .que { font-size: 17px; fill: var(--texto-3); font-family: var(--f-texto); transition: fill .3s; }
+.dia-fila.hecho .hora-dia, .dia-fila.actual .hora-dia { fill: var(--tinta); }
+.dia-fila.hecho .nodo { fill: var(--tinta); stroke: var(--tinta); }
+.dia-fila.actual .nodo { fill: var(--rojo); stroke: var(--rojo); }
+.dia-fila.hecho .etiqueta rect, .dia-fila.actual .etiqueta rect { fill: var(--tinta); }
+.dia-fila.hecho .etiqueta text, .dia-fila.actual .etiqueta text { fill: #fff; }
+.dia-fila.hecho .que { fill: var(--texto-2); }
+.dia-fila.actual .que { fill: var(--tinta); font-weight: 600; }
+
+/* ---------- Lo que ya existe ---------- */
+.tablero {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(10px, 1.2vw, 18px);
+  width: 100%; align-self: center;
+}
+.estado {
+  background: var(--papel); border: 1.5px solid var(--tinta); border-radius: 4px; overflow: hidden;
+  font-size: clamp(12.5px, .92vw, 15.5px);
+}
+.estado h3 {
+  margin: 0; background: var(--tinta); color: #fff; font-family: var(--f-plancha); font-weight: 600;
+  font-size: 1.12em; padding: .45em .8em; display: flex; gap: .6em; align-items: baseline;
+}
+.estado h3 span { color: var(--rojo-legible); font-weight: 700; }
+.estado ul { list-style: none; margin: 0; padding: .6em .8em .75em; display: grid; gap: .32em; line-height: 1.35; }
+.estado li { display: grid; grid-template-columns: 14px 1fr; gap: .55em; align-items: baseline; }
+.estado li .marca-estado { width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--tinta); transform: translateY(1px); }
+.estado li.funciona .marca-estado { background: var(--tinta); }
+.estado li.adaptar .marca-estado { background: linear-gradient(90deg, var(--tinta) 50%, transparent 50%); }
+.estado li.falta .marca-estado { border-color: #9AA0B2; }
+.estado li.falta { color: var(--texto-3); }
+.estado .de { color: var(--texto-3); font-size: .9em; }
+.convencion { display: flex; flex-wrap: wrap; gap: 1.2em; margin-top: 1em; font-size: 14px; color: var(--texto-2); }
+.convencion span { display: inline-flex; align-items: center; gap: .45em; }
+.convencion i { width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--tinta); display: inline-block; }
+.convencion i.f { background: var(--tinta); }
+.convencion i.a { background: linear-gradient(90deg, var(--tinta) 50%, transparent 50%); }
+.convencion i.x { border-color: #9AA0B2; }
+
+/* ---------- Decisiones ---------- */
+.decisiones { list-style: none; padding: 0; margin: 0 0 1.4em; display: grid; gap: .8em; font-size: clamp(16px, 1.25vw, 21px); line-height: 1.4; }
+.decisiones li { border-left: 3px solid var(--rojo); padding: .15em 0 .15em .8em; color: #ECEDF2; text-wrap: pretty; }
+.decisiones .ref { display: block; font-size: .72em; color: #8C93A6; margin-top: .2em; }
+.paralelo { font-size: clamp(14px, 1vw, 17px); color: #BAC0CE; line-height: 1.5; max-width: 36em; }
+
+/* ---------- La cinta de navegación ---------- */
+.cinta-nav {
+  position: fixed; left: 0; right: 0; bottom: 0; height: var(--alto-cinta); z-index: 7;
+  background: var(--tinta); border-top: 1px solid #000;
+}
+.cinta-nav :focus-visible { outline-color: var(--rojo-legible); }
+.cinta-nav .banda {
+  position: absolute; left: 0; right: 0; top: 26px; height: 18px; overflow: hidden;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.07), inset 0 -2px 0 rgba(0,0,0,.45);
+}
+/* Las rayas viven en un pseudo-elemento más ancho que se traslada: se anima transform, no el fondo.
+   240 px es múltiplo del período de 24 px, así el final calza con el principio. */
+.cinta-nav .banda::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -240px; right: -240px;
+  background: repeating-linear-gradient(90deg, var(--cinta) 0 22px, #3C4255 22px 24px);
+}
+.cinta-nav.rodando .banda::before { animation: avanzar var(--dur) var(--curva); }
+.cinta-nav.rodando.atras .banda::before { animation-name: retroceder; }
+@keyframes avanzar { from { transform: translateX(0); } to { transform: translateX(240px); } }
+@keyframes retroceder { from { transform: translateX(0); } to { transform: translateX(-240px); } }
+.rodillos { position: absolute; left: 0; right: 0; top: 46px; height: 12px; display: flex; justify-content: space-between; padding: 0 6px; }
+.rodillo {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: conic-gradient(#5D657D 0 25%, #2B3040 0 50%, #5D657D 0 75%, #2B3040 0);
+}
+.cinta-nav.rodando .rodillo { animation: girar var(--dur) var(--curva); }
+.cinta-nav.rodando.atras .rodillo { animation-direction: reverse; }
+@keyframes girar { to { transform: rotate(540deg); } }
+.paradas { position: absolute; inset: 0; margin: 0; padding: 0 clamp(8px, 2vw, 40px); list-style: none; display: flex; justify-content: space-between; }
+.paradas li { flex: 1 1 0; display: flex; justify-content: center; }
+.parada {
+  position: relative; height: 100%; width: 100%; max-width: 140px; background: transparent; border: 0; cursor: pointer;
+  display: flex; align-items: flex-end; justify-content: center; gap: 5px; padding: 0 0 9px;
+  color: #8A90A3; font-family: var(--f-plancha); font-size: 13.5px; white-space: nowrap;
+}
+.parada::before {
+  content: ""; position: absolute; top: 14px; width: 2px; height: 10px; background: #4A5166;
+}
+.parada .np { font-weight: 700; color: #B9BECC; }
+.parada[aria-current="step"] { color: #fff; }
+.parada[aria-current="step"] .np { color: var(--rojo-legible); }
+.parada[aria-current="step"]::before { background: var(--rojo); }
+.parada:hover { color: #D9DCE5; }
+.ficha {
+  position: absolute; top: 14px; left: 0; width: 30px; height: 22px; border-radius: 3px; background: var(--rojo);
+  transform: translateX(var(--x, 0px)) translateX(-50%); transition: transform var(--dur) var(--curva);
+  box-shadow: 0 3px 0 rgba(0,0,0,.45); pointer-events: none;
+}
+.ficha::before, .ficha::after { content: ""; position: absolute; left: 6px; height: 2px; background: #fff; border-radius: 1px; }
+.ficha::before { top: 8px; width: 18px; }
+.ficha::after { top: 13px; width: 11px; opacity: .8; }
+
+/* ---------- Ayuda ---------- */
+dialog#ayuda {
+  border: 1.5px solid var(--tinta); border-radius: 6px; padding: 24px 28px; max-width: 420px;
+  font-family: var(--f-texto); color: var(--texto); overscroll-behavior: contain;
+}
+dialog#ayuda::backdrop { background: rgba(20,22,29,.55); }
+dialog#ayuda h2 { font-size: 26px; }
+dialog#ayuda dl { display: grid; grid-template-columns: auto 1fr; gap: .5em 1em; margin: 0 0 1.2em; }
+dialog#ayuda dt { font-family: var(--f-plancha); font-weight: 600; }
+dialog#ayuda dd { margin: 0; color: var(--texto-2); }
+dialog#ayuda button { border: 1.5px solid var(--tinta); background: var(--tinta); color: #fff; border-radius: 4px; padding: 6px 14px; cursor: pointer; font-family: var(--f-plancha); }
+
+/* ---------- Pantallas chicas ---------- */
+@media (max-width: 900px) {
+  /* En bloque y no en grilla: una fila automática de la grilla no le daba a la escena su alto. */
+  .diapo { display: block; overflow-y: auto; padding-top: 76px; }
+  .lienzo { height: auto; display: block; margin-top: 20px; }
+  /* Apilada, la escena necesita su propio alto: el de su proporción. */
+  .escena { height: auto; aspect-ratio: 1000 / 640; max-height: none; }
+  .tablero { grid-template-columns: 1fr 1fr; }
+  .parada .nom-parada { display: none; }
+  .controles .opcional { display: none; }
+}
+@media (max-width: 560px) {
+  .tablero { grid-template-columns: 1fr; }
+  .marca-d { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pista, .ficha { transition: none; }
+  .diapo.activa .cinta-raya { animation: none; }
+  .cinta-nav.rodando .banda::before, .cinta-nav.rodando .rodillo { animation: none; }
+}
+</style>
+</head>
+<body data-tono="oscuro">
+
+<!-- Íconos compartidos: cada uno apoya su borde inferior en (0,0), sobre la cinta. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="i-nota">
+      <rect x="-15" y="-29" width="30" height="23" rx="2.5" fill="#fff" stroke="#14161D" stroke-width="1.5"/>
+      <rect x="-11" y="-25.5" width="22" height="8.5" rx="1" fill="#C3C8D4"/>
+      <path d="M-11 -13.2H11M-11 -9.6H3" stroke="#14161D" stroke-width="1.6" stroke-linecap="round"/>
+    </g>
+    <g id="i-video">
+      <rect x="-16" y="-28" width="32" height="22" rx="2.5" fill="#14161D"/>
+      <path d="M-4 -22.5 6 -17-4 -11.5Z" fill="#fff"/>
+      <path d="M-12.5 -25h3M-12.5 -9h3M9.5 -25h3M9.5 -9h3" stroke="#fff" stroke-width="1.4" opacity=".55"/>
+    </g>
+    <g id="i-chat">
+      <path d="M-14 -31H14Q17 -31 17 -28V-16Q17 -13 14 -13H-3L-10 -7V-13H-14Q-17 -13 -17 -16V-28Q-17 -31 -14 -31Z" fill="#fff" stroke="#14161D" stroke-width="1.5" stroke-linejoin="round"/>
+      <circle cx="-7" cy="-22" r="1.8" fill="#14161D"/><circle cx="0" cy="-22" r="1.8" fill="#14161D"/><circle cx="7" cy="-22" r="1.8" fill="#14161D"/>
+    </g>
+    <g id="i-cable">
+      <path d="M-13 -31H7L13 -25V-6H-13Z" fill="#fff" stroke="#14161D" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M7 -31V-25H13" fill="none" stroke="#14161D" stroke-width="1.5"/>
+      <path d="M-9 -23H4M-9 -18.5H8M-9 -14H8M-9 -9.5H2" stroke="#14161D" stroke-width="1.4"/>
+    </g>
+    <g id="i-cal">
+      <rect x="-14" y="-29" width="28" height="23" rx="2.5" fill="#fff" stroke="#14161D" stroke-width="1.5"/>
+      <path d="M-14 -26.5a2.5 2.5 0 0 1 2.5-2.5h23a2.5 2.5 0 0 1 2.5 2.5V-22H-14Z" fill="#D30000"/>
+      <path d="M-8 -32v5M8 -32v5" stroke="#14161D" stroke-width="2" stroke-linecap="round"/>
+      <rect x="2.5" y="-17.5" width="7" height="7" rx="1" fill="#14161D"/>
+    </g>
+    <g id="i-hash">
+      <circle cx="0" cy="-18" r="13" fill="#fff" stroke="#14161D" stroke-width="1.5"/>
+      <path d="M-3.5 -25.5-5.5 -10.5M4.5 -25.5 2.5 -10.5M-9 -21.5H8M-10 -14.5H7" stroke="#14161D" stroke-width="1.7" stroke-linecap="round"/>
+    </g>
+    <g id="i-ojo">
+      <path d="M-17 -18Q0 -34 17 -18Q0 -2 -17 -18Z" fill="#fff" stroke="#D30000" stroke-width="1.7"/>
+      <circle cx="0" cy="-18" r="5.2" fill="#D30000"/>
+    </g>
+    <g id="i-arte">
+      <rect x="-18" y="-21" width="12" height="15" rx="1.5" fill="#D30000"/>
+      <rect x="-3" y="-23" width="9" height="17" rx="1.5" fill="#D30000"/>
+      <rect x="9" y="-18" width="12" height="12" rx="1.5" fill="#D30000"/>
+      <path d="M-16 -10h8M-1 -10h5M11 -10h8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+    </g>
+    <g id="i-pieza">
+      <rect x="-15" y="-29" width="30" height="23" rx="2.5" fill="#fff" stroke="#14161D" stroke-width="1.5"/>
+      <path d="M-15 -26.5a2.5 2.5 0 0 1 2.5-2.5h25a2.5 2.5 0 0 1 2.5 2.5V-22H-15Z" fill="currentColor"/>
+      <path d="M-10 -16.5H10M-10 -11.5H4" stroke="#14161D" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+    <g id="i-dato">
+      <rect x="-14" y="-29" width="28" height="23" rx="2.5" fill="#fff" stroke="#14161D" stroke-width="1.5"/>
+      <path d="M-8 -11v-4M-2.7 -11v-9M2.7 -11v-6M8 -11v-12" stroke="#D30000" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g id="i-persona">
+      <circle cx="0" cy="-27" r="6" fill="#14161D"/>
+      <path d="M-10 -6Q-10 -19 0 -19Q10 -19 10 -6Z" fill="#14161D"/>
+    </g>
+    <g id="i-agente">
+      <path d="M0 -33 13.5 -25V-9L0 -1-13.5 -9V-25Z" fill="#2563EB"/>
+      <text x="0" y="-12.5" text-anchor="middle" font-family="Bahnschrift, 'Arial Narrow', sans-serif" font-size="12" font-weight="700" fill="#fff">IA</text>
+    </g>
+  </defs>
+</svg>
+
+<header class="cabecera">
+  <div class="marca" translate="no"><span class="marca-u">UNITEL</span><span class="marca-d">Digital</span></div>
+  <div class="controles">
+    <span class="contador" aria-hidden="true"><span id="num-actual">1</span> de <span id="num-total">11</span></span>
+    <button type="button" id="btn-pausa" aria-pressed="false" class="opcional">Pausar animación</button>
+    <button type="button" id="btn-pantalla" class="opcional">Pantalla completa</button>
+    <button type="button" id="btn-ayuda" aria-haspopup="dialog">Teclas</button>
+  </div>
+</header>
+
+<p id="anuncio" class="sr" aria-live="polite"></p>
+
+<main class="escenario">
+  <div class="pista">
+
+    <!-- 0 · Portada -->
+    <section class="diapo oscura" data-nombre="Portada" data-escena="ciclo" aria-roledescription="diapositiva">
+      <div class="texto">
+        <h1>La fábrica<br>de contenidos</h1>
+        <p class="lead">Cómo el área DIGITAL de UNITEL puede captar, producir, controlar, programar, publicar y aprender todos los días, con personas y agentes de IA trabajando en la misma línea.</p>
+        <p class="fuente-nota">Propuesta para conversar, 14 de octubre de 2026. Equipo TDx.</p>
+        <p class="atajo">Avanzar con <kbd>→</kbd> o la barra espaciadora. Volver con <kbd>←</kbd>.</p>
+      </div>
+      <div class="lienzo">
+        <svg class="escena" viewBox="0 0 1000 640" role="img" aria-label="El ciclo de la fábrica: seis estaciones unidas por una cinta que da la vuelta. Fuentes, Producción híbrida, Base de control, Cronograma, Conexiones y Analítica, que vuelve a Fuentes."></svg>
+      </div>
+    </section>
+
+    <!-- 1 · Hoy -->
+    <section class="diapo clara" data-nombre="Hoy" data-escena="hoy" aria-roledescription="diapositiva">
+      <div class="texto">
+        <h2>Hoy el contenido sale, pero a mano</h2>
+        <p class="lead">El área produce unas 150 piezas por día con diez herramientas que no se hablan entre sí. El pegamento es WhatsApp.</p>
+        <ul class="hechos">
+          <li>unitel.bo publica <strong>unas 100 notas propias por día</strong>, y entre el 95 y el 98&nbsp;% pasa a redes rediseñada a mano en Photoshop, casi siempre por un pasante.</li>
+          <li><strong>Más de 10 grupos de WhatsApp:</strong> ahí se sube, se corrige y se aprueba con un emoji.</li>
+          <li><strong>Un solo diseñador</strong>, que además es de otra área.</li>
+          <li><strong>Los strikes ya pasaron:</strong> Facebook limitado a 6 publicaciones por hora; TikTok, sin virales ni internacionales.</li>
+          <li><strong>Sin monitoreo:</strong> hoy nadie puede decir cuál es el tema más comentado en redes.</li>
+        </ul>
+        <p class="fuente-nota">Fuente: entrevistas al área DIGITAL, septiembre de 2026.</p>
+      </div>
+      <div class="lienzo">
+        <svg class="escena" viewBox="0 0 1000 640" role="img" aria-label="Diez herramientas alrededor de WhatsApp, unidas por líneas punteadas. Cada línea es una persona que copia, pega o reenvía."></svg>
+      </div>
+    </section>
+
+    <!-- 2 · Fuentes -->
+    <section class="diapo clara" data-nombre="Fuentes" data-escena="fuentes" aria-roledescription="diapositiva">
+      <div class="texto">
+        <div class="cabeza"><span class="numero" aria-hidden="true">1</span><h2>Fuentes: cintas que juntan todo lo que pasa</h2></div>
+        <p class="lead">La base de la fábrica (también la llamamos Editorial). Cada cinta hace un solo trabajo: lee el portal, recibe a los reporteros, trae los cables, mira a la competencia, escucha las redes. Sumar una fuente es sumar una cinta.</p>
+        <ul class="hechos">
+          <li>unitel.bo publica <strong>unas 877 notas por día</strong>: el 87&nbsp;% son de agencias y unas 108 son propias.</li>
+          <li>Lo de la competencia y las tendencias entra <strong>solo para mirar</strong>: avisa qué no tenemos; su texto y su foto nunca se reutilizan.</li>
+          <li>El calendario también es una fuente: feriados, efemérides, partidos.</li>
+        </ul>
+        <div class="ya">
+          <h3>Ya tenemos</h3>
+          <ul>
+            <li><span>Lectura de unitel.bo, El Deber y Red Uno <span class="origen">(Foto Nota)</span></span></li>
+            <li><span>Subir material en 2 toques desde el celular <span class="origen">(MediaTable)</span></span></li>
+            <li><span>Métricas y menciones de Facebook e Instagram <span class="origen">(ingesta de Meta)</span></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="lienzo">
+        <svg class="escena" viewBox="0 0 1000 640" role="img" aria-label="Siete cintas, una por fuente: portal unitel.bo, agencias, reporteros y grupos, señal de TV, calendario, redes sociales y competencia. Las cinco primeras desembocan en la bandeja de entrada; redes y competencia van a vigilancia, solo para mirar. Una cinta punteada muestra que se pueden sumar más."></svg>
+      </div>
+    </section>
+
+    <!-- 3 · Producción híbrida -->
+    <section class="diapo clara" data-nombre="Producción" data-escena="produccion" aria-roledescription="diapositiva">
+      <div class="texto">
+        <div class="cabeza"><span class="numero" aria-hidden="true">2</span><h2>Producción híbrida: personas y agentes en la misma línea</h2></div>
+        <p class="lead">Hay trabajo que solo una persona puede hacer, y trabajo repetitivo que un agente de IA resuelve en segundos. Todo termina en la misma pieza, que se aprueba según su riesgo.</p>
+        <ul class="hechos">
+          <li><strong>Personas:</strong> los clipeos de la transmisión, los reels y producciones propias, los guiones de los nativos.</li>
+          <li><strong>Agentes:</strong> la destacada de cada nota en 4:5, 9:16 y 1:1 con la foto original; una propuesta para lo que la competencia tiene y nosotros no; un video para una fecha del calendario; el texto de cada red.</li>
+          <li><strong>Aprobación según el riesgo:</strong> rutina, automática si el control da verde; normal, una firma; sensible, dos firmas de personas distintas.</li>
+        </ul>
+        <div class="ya">
+          <h3>Ya tenemos</h3>
+          <ul>
+            <li><span>12 artes calibrados al píxel y su diseño editable <span class="origen">(Foto Nota)</span></span></li>
+            <li><span>Reencuadre a 4 formatos y texto por red con IA <span class="origen">(MediaTable)</span></span></li>
+            <li><span>Recorridos, firmas y niveles de riesgo por área <span class="origen">(MediaTable)</span></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="lienzo">
+        <svg class="escena" viewBox="0 0 1000 640" role="img" aria-label="Dos carriles salen de la bandeja. Arriba, personas: clipeo de la transmisión, reel o producción propia, guion de un nativo. Abajo, agentes de IA: destacada, propuesta ante la competencia, video por una fecha, texto para cada red. Los dos llegan a la pieza, que sale por una de tres puertas: rutina, normal o sensible."></svg>
+      </div>
+    </section>
+
+    <!-- 4 · Base de control -->
+    <section class="diapo clara" data-nombre="Control" data-escena="control" aria-roledescription="diapositiva">
+      <div class="texto">
+        <div class="cabeza"><span class="numero" aria-hidden="true">3</span><h2>Base de control: nada sale sin pasar el filtro</h2></div>
+        <p class="lead">Cada pieza atraviesa cuatro controles. Lo seguro avanza solo, lo dudoso lo mira una persona y lo que rompe una regla vuelve con el motivo escrito.</p>
+        <ul class="hechos">
+          <li><strong>Specs de cada red:</strong> formato, peso y duración. Por API, Instagram solo acepta JPEG.</li>
+          <li><strong>Moderación:</strong> violencia gráfica, desnudez, odio.</li>
+          <li><strong>Políticas de cada red</strong>, con la regla citada textual, no una opinión.</li>
+          <li><strong>Derechos y normas:</strong> música, material de terceros, menores, etiqueta de IA, ATT.</li>
+          <li>Cada devolución se guarda: <strong>el error se corrige una sola vez.</strong></li>
+        </ul>
+        <div class="ya">
+          <h3>Ya tenemos</h3>
+          <ul>
+            <li><span>Control de specs por red, con la regla citada <span class="origen">(MediaTable)</span></span></li>
+            <li><span>Regresión visual de las plantillas por huella <span class="origen">(Foto Nota)</span></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="lienzo">
+        <svg class="escena" viewBox="0 0 1000 640" role="img" aria-label="Una cinta atraviesa un portón con cuatro controles: specs de cada red, moderación, políticas citadas, derechos y normas. Un semáforo decide: verde sigue al cronograma, ámbar pasa por una persona y rojo vuelve a producción con el motivo."></svg>
+      </div>
+    </section>
+
+    <!-- 5 · Cronograma -->
+    <section class="diapo clara" data-nombre="Cronograma" data-escena="cronograma" aria-roledescription="diapositiva">
+      <div class="texto">
+        <div class="cabeza"><span class="numero" aria-hidden="true">4</span><h2>Cronograma: cada pieza tiene su hueco</h2></div>
+        <p class="lead">Lo aprobado se ubica en la grilla de cada cuenta, cada 15 minutos, sin pasarse de lo que cada red acepta. Lo urgente entra y la grilla se reacomoda.</p>
+        <ul class="hechos">
+          <li>Redes publica <strong>una pieza cada 15 minutos</strong> de 6:00 a 24:00.</li>
+          <li><strong>Facebook:</strong> hoy, 6 publicaciones por hora por la sanción. <strong>Instagram:</strong> 100 por API cada 24 horas.</li>
+          <li>La cuota de una cuenta es una sola, publique quien publique: redes, la web o streaming.</li>
+          <li>La grilla guarda la historia: ya no se borra los domingos.</li>
+        </ul>
+        <div class="ya">
+          <h3>Ya tenemos</h3>
+          <ul>
+            <li><span>Parrilla por día y hora, para consultar <span class="origen">(MediaTable)</span></span></li>
+            <li><span>Pizarrón de la reunión de la mañana <span class="origen">(MediaTable)</span></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="lienzo">
+        <svg class="escena" viewBox="0 0 1000 640" role="img" aria-label="Una grilla con siete cuentas en filas y huecos de 15 minutos de 10:00 a 12:45. Las piezas caen en sus huecos, una línea roja marca la hora actual, una pieza urgente entra y corre a otra, y abajo hay medidores de cuota por cuenta."></svg>
+      </div>
+    </section>
+
+    <!-- 6 · Conexiones -->
+    <section class="diapo clara" data-nombre="Conexiones" data-escena="conexiones" aria-roledescription="diapositiva">
+      <div class="texto">
+        <div class="cabeza"><span class="numero" aria-hidden="true">5</span><h2>Conexiones: un solo camino de salida</h2></div>
+        <p class="lead">El mismo paquete (arte, texto y hora) sale a cada red por un conector que se puede cambiar: una persona que publica y confirma, un proveedor contratado o una API propia, red por red.</p>
+        <ul class="hechos">
+          <li>Hoy se publica por Metricool, por cada app y desde la web, <strong>sin verse entre sí</strong>.</li>
+          <li>Las APIs piden aprobación: <strong>Meta, de 2 a 6 semanas</strong>; TikTok, una auditoría sin la que todo sale privado.</li>
+          <li>Por eso se empieza con el conector manual: <strong>la fábrica funciona desde el primer día.</strong></li>
+          <li>Cada publicación guarda por dónde salió y quién la aprobó.</li>
+        </ul>
+        <div class="ya">
+          <h3>Ya tenemos</h3>
+          <ul>
+            <li><span>Conector manual y la interfaz para cambiarlo <span class="origen">(MediaTable)</span></span></li>
+            <li><span>App de Meta y usuario de sistema, creados para la ingesta <span class="origen">(TDx)</span></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="lienzo">
+        <svg class="escena" viewBox="0 0 1000 640" role="img" aria-label="El paquete listo entra a un conector con tres posiciones: manual, proveedor contratado y API propia. Del conector salen líneas a Instagram, Facebook, TikTok, YouTube, X, el canal de WhatsApp y el portal unitel.bo."></svg>
+      </div>
+    </section>
+
+    <!-- 7 · Analítica -->
+    <section class="diapo clara" data-nombre="Analítica" data-escena="analitica" aria-roledescription="diapositiva">
+      <div class="texto">
+        <div class="cabeza"><span class="numero" aria-hidden="true">6</span><h2>Analítica: lo que rindió alimenta el día siguiente</h2></div>
+        <p class="lead">Cada publicación vuelve con sus números. La fábrica los usa para decidir qué fuentes y qué formatos pesan más mañana, y el ciclo vuelve a empezar.</p>
+        <ul class="hechos">
+          <li>Rendimiento <strong>por pieza, por formato, por hora y por creador</strong>, con la categoría real y no por hashtag.</li>
+          <li>El reporte de fin de turno lo arma la fábrica; la persona suma lo que necesita criterio.</li>
+          <li>La mezcla del día a la vista: <strong>lo duro no pasa del 40&nbsp;%</strong>.</li>
+        </ul>
+        <div class="ya">
+          <h3>Ya tenemos</h3>
+          <ul>
+            <li><span>Ingesta diaria de Facebook, Instagram y Ads en Fabric, con Power BI <span class="origen">(ingesta de Meta)</span></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="lienzo">
+        <svg class="escena" viewBox="0 0 1000 640" role="img" aria-label="Un gráfico de barras de ejemplo con el alcance por tipo de pieza, donde las destacadas rinden más; debajo, la mezcla del día con el tope de 40&nbsp;% de contenido duro; y una cinta que devuelve los datos a Fuentes."></svg>
+        <table class="sr">
+          <caption>Alcance por tipo de pieza (índice, ejemplo ilustrativo)</caption>
+          <tr><th>Destacadas</th><td>82</td></tr><tr><th>Virales</th><td>64</td></tr><tr><th>Deportes</th><td>57</td></tr><tr><th>Servicios</th><td>41</td></tr><tr><th>Política</th><td>29</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- 8 · Un día -->
+    <section class="diapo clara" data-nombre="Un día" data-escena="dia" aria-roledescription="diapositiva">
+      <div class="texto">
+        <h2>Un día en la fábrica: la destacada de una nota</h2>
+        <p class="lead">El primer recorrido que proponemos construir. Es el pedido que más se repitió en las entrevistas y no depende de nadie de afuera: el portal ya avisa cada nota nueva en su sitemap.</p>
+        <ul class="hechos">
+          <li><strong>Hoy:</strong> buscar la nota, copiar, rediseñar en Photoshop y subir a cada red, unas 100 veces por día.</li>
+          <li><strong>Con la fábrica:</strong> la persona revisa y aprueba; lo repetitivo lo hace la línea.</li>
+          <li>Lo pidieron <strong>cinco personas del área</strong>, y en El Deber ya funciona así.</li>
+        </ul>
+      </div>
+      <div class="lienzo">
+        <svg class="escena" viewBox="0 0 1000 640" role="img" aria-label="Línea de tiempo de una destacada: 10:42 se publica la nota; 10:50 la cinta del portal la detecta; 10:51 un agente arma el arte en tres formatos; 10:51 el control da verde; 11:00 coordinación aprueba veinte de una vez; 11:15 toma su hueco sin pasar de seis por hora; 11:15 sale por el conector; a las 06:00 del día siguiente sus números ajustan la prioridad."></svg>
+      </div>
+    </section>
+
+    <!-- 9 · Lo que ya existe -->
+    <section class="diapo clara" data-nombre="Lo que hay" aria-roledescription="diapositiva">
+      <div class="texto">
+        <h2>No partimos de cero</h2>
+        <p class="lead">Dos desarrollos de TDx ya resuelven buena parte, y cada uno una mitad distinta: Foto Nota produce y vigila; MediaTable ordena, controla y entrega.</p>
+        <div class="convencion" aria-label="Convención">
+          <span><i class="f"></i>Funciona hoy</span>
+          <span><i class="a"></i>Hay que adaptarlo</span>
+          <span><i class="x"></i>Falta construir</span>
+        </div>
+      </div>
+      <div class="lienzo">
+        <div class="tablero">
+          <section class="estado"><h3><span>1</span>Fuentes</h3><ul>
+            <li class="funciona"><i class="marca-estado"></i><span>Portal unitel.bo <span class="de">Foto Nota</span></span></li>
+            <li class="funciona"><i class="marca-estado"></i><span>El Deber y Red Uno <span class="de">Foto Nota</span></span></li>
+            <li class="funciona"><i class="marca-estado"></i><span>Subida desde el celular <span class="de">MediaTable</span></span></li>
+            <li class="falta"><i class="marca-estado"></i><span>Agencias, redes, grupos de WhatsApp</span></li>
+            <li class="falta"><i class="marca-estado"></i><span>Señal de TV y calendario</span></li>
+          </ul></section>
+          <section class="estado"><h3><span>2</span>Producción híbrida</h3><ul>
+            <li class="funciona"><i class="marca-estado"></i><span>12 artes al píxel y su diseño <span class="de">Foto Nota</span></span></li>
+            <li class="funciona"><i class="marca-estado"></i><span>Reencuadre y texto con IA <span class="de">MediaTable</span></span></li>
+            <li class="funciona"><i class="marca-estado"></i><span>Recorridos y firmas <span class="de">MediaTable</span></span></li>
+            <li class="adaptar"><i class="marca-estado"></i><span>Armar los artes en el servidor</span></li>
+            <li class="falta"><i class="marca-estado"></i><span>Video con IA y carruseles</span></li>
+          </ul></section>
+          <section class="estado"><h3><span>3</span>Base de control</h3><ul>
+            <li class="funciona"><i class="marca-estado"></i><span>Specs de cada red <span class="de">MediaTable</span></span></li>
+            <li class="funciona"><i class="marca-estado"></i><span>Regresión visual <span class="de">Foto Nota</span></span></li>
+            <li class="adaptar"><i class="marca-estado"></i><span>Memoria de devoluciones <span class="de">MediaTable</span></span></li>
+            <li class="falta"><i class="marca-estado"></i><span>Moderación y políticas citadas</span></li>
+            <li class="falta"><i class="marca-estado"></i><span>Derechos y normas de la ATT</span></li>
+          </ul></section>
+          <section class="estado"><h3><span>4</span>Cronograma</h3><ul>
+            <li class="funciona"><i class="marca-estado"></i><span>Pizarrón de la mañana <span class="de">MediaTable</span></span></li>
+            <li class="adaptar"><i class="marca-estado"></i><span>Parrilla por día y hora <span class="de">MediaTable</span></span></li>
+            <li class="falta"><i class="marca-estado"></i><span>Cuotas por hora y por cuenta</span></li>
+            <li class="falta"><i class="marca-estado"></i><span>Grilla de 15 minutos con historia</span></li>
+          </ul></section>
+          <section class="estado"><h3><span>5</span>Conexiones</h3><ul>
+            <li class="funciona"><i class="marca-estado"></i><span>Conector manual <span class="de">MediaTable</span></span></li>
+            <li class="adaptar"><i class="marca-estado"></i><span>App de Meta <span class="de">ingesta de Meta</span></span></li>
+            <li class="falta"><i class="marca-estado"></i><span>Proveedor contratado o API propia</span></li>
+          </ul></section>
+          <section class="estado"><h3><span>6</span>Analítica</h3><ul>
+            <li class="funciona"><i class="marca-estado"></i><span>Meta en Fabric y Power BI <span class="de">ingesta de Meta</span></span></li>
+            <li class="falta"><i class="marca-estado"></i><span>Rendimiento por pieza y creador</span></li>
+            <li class="falta"><i class="marca-estado"></i><span>Reporte de turno automático</span></li>
+          </ul></section>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 · Para decidir -->
+    <section class="diapo oscura" data-nombre="Decidir" data-escena="ciclo" aria-roledescription="diapositiva">
+      <div class="texto">
+        <h2>Para decidir hoy</h2>
+        <ul class="decisiones">
+          <li>¿La fábrica integra MediaTable y Foto Nota en un solo sistema, o los conecta?</li>
+          <li>¿Arrancamos por la destacada automática? ¿De qué secciones y en qué formatos?</li>
+          <li>¿Dónde corre y con qué presupuesto mensual de nube e IA?</li>
+          <li>¿Quién firma cuando el jefe de DIGITAL no está?</li>
+        </ul>
+        <p class="paralelo">En paralelo, desde ya: los trámites de API de Meta y TikTok, la conversación con sistemas sobre el CMS y el clipeo, y la consulta a legal sobre las licencias de agencias.</p>
+        <p class="fuente-nota">Todo el detalle está en la documentación del repositorio Fabrica_contenidos, carpeta docs.</p>
+      </div>
+      <div class="lienzo">
+        <svg class="escena" viewBox="0 0 1000 640" role="img" aria-label="El ciclo completo de la fábrica, de nuevo: seis estaciones unidas por una cinta."></svg>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<nav class="cinta-nav" aria-label="Estaciones de la presentación">
+  <div class="banda" aria-hidden="true"></div>
+  <div class="rodillos" aria-hidden="true"></div>
+  <ol class="paradas"></ol>
+  <span class="ficha" aria-hidden="true"></span>
+</nav>
+
+<dialog id="ayuda" aria-labelledby="ayuda-t">
+  <h2 id="ayuda-t">Teclas</h2>
+  <dl>
+    <dt>→ · Espacio · Av Pág</dt><dd>Siguiente</dd>
+    <dt>← · Re Pág</dt><dd>Anterior</dd>
+    <dt>Inicio · Fin</dt><dd>Primera y última</dd>
+    <dt>F</dt><dd>Pantalla completa</dd>
+    <dt>P</dt><dd>Pausar o seguir la animación</dd>
+  </dl>
+  <form method="dialog"><button>Cerrar</button></form>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const NS = 'http://www.w3.org/2000/svg';
+const reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- utilidades de dibujo ---------- */
+function el(tag, attrs, padre) {
+  const e = document.createElementNS(NS, tag);
+  if (attrs) for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (padre) padre.appendChild(e);
+  return e;
+}
+function txt(padre, x, y, s, attrs) {
+  const t = el('text', Object.assign({ x, y }, attrs || {}), padre);
+  t.textContent = s;
+  return t;
+}
+function cinta(padre, d, extra) {
+  const g = el('g', { class: 'cinta' + (extra ? ' ' + extra : '') }, padre);
+  const base = el('path', { d, class: 'cinta-base' }, g);
+  el('path', { d, class: 'cinta-raya' }, g);
+  return base;
+}
+function item(padre, tipo) { return el('use', { href: '#i-' + tipo, class: 'item' }, padre); }
+function poblar(padre, path, tipos, sep) {
+  const n = Math.max(1, Math.ceil(path.getTotalLength() / sep));
+  const arr = [];
+  for (let k = 0; k < n; k++) arr.push(item(padre, tipos[k % tipos.length]));
+  return arr;
+}
+// Mueve los ítems sobre un recorrido: posición = (t·vel + k·sep) módulo el largo.
+function recorrido(path, items, opc) {
+  const o = Object.assign({ vel: 60, sep: 80, borde: 30, fase: 0 }, opc || {});
+  const L = path.getTotalLength();
+  const pos = items.map(() => ({ x: 0, y: 0, s: 0 }));
+  function mover(t) {
+    for (let k = 0; k < items.length; k++) {
+      const s = (((t * o.vel + k * o.sep + o.fase) % L) + L) % L;
+      const p = path.getPointAtLength(s);
+      pos[k].x = p.x; pos[k].y = p.y; pos[k].s = s;
+      const it = items[k];
+      it.setAttribute('transform', 'translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ')');
+      if (o.borde > 0) it.style.opacity = Math.max(0, Math.min(1, s / o.borde, (L - s) / o.borde)).toFixed(2);
+    }
+  }
+  return { mover, pos, L };
+}
+function placa(padre, x, y, w, h, titulo, sub, clase) {
+  const g = el('g', { class: 'placa' + (clase ? ' ' + clase : ''), transform: 'translate(' + x + ' ' + y + ')' }, padre);
+  el('rect', { class: 'fondo', x: 0, y: 0, width: w, height: h, rx: 5 }, g);
+  if (sub) {
+    txt(g, 12, h / 2 - 3, titulo, { class: 't' });
+    txt(g, 12, h / 2 + 14, sub, { class: 's' });
+  } else {
+    txt(g, 12, h / 2 + 5, titulo, { class: 't' });
+  }
+  return g;
+}
+function lineas(padre, x, y, lista, attrs, alto) {
+  const t = el('text', Object.assign({ x, y }, attrs || {}), padre);
+  lista.forEach((s, k) => { const ts = el('tspan', { x, dy: k === 0 ? 0 : (alto || 15) }, t); ts.textContent = s; });
+  return t;
+}
+const suave = p => p < 0 ? 0 : p > 1 ? 1 : 1 - Math.pow(1 - p, 3);
+const formato = new Intl.NumberFormat('es-BO');
+const miles = n => formato.format(n);
+
+/* ---------- escenas ---------- */
+const fabricas = {};
+
+// El ciclo completo: portada y cierre.
+fabricas.ciclo = svg => {
+  const d = 'M300 150H700A170 170 0 0 1 700 490H300A170 170 0 0 1 300 150Z';
+  const base = cinta(svg, d);
+  const capa = el('g', {}, svg);
+  const L = base.getTotalLength();
+  const n = 18;
+  const tipos = ['nota', 'pieza', 'arte', 'dato', 'video', 'arte', 'pieza', 'nota', 'dato'];
+  const its = [];
+  for (let k = 0; k < n; k++) its.push(item(capa, tipos[k % tipos.length]));
+  const r = recorrido(base, its, { vel: 52, sep: L / n, borde: 0 });
+  const est = [[1, 'Fuentes', 370, 150], [2, 'Producción híbrida', 630, 150], [3, 'Base de control', 870, 320],
+               [4, 'Cronograma', 630, 490], [5, 'Conexiones', 370, 490], [6, 'Analítica', 130, 320]];
+  const placas = est.map(([num, nombre, x, y]) => {
+    const g = el('g', { class: 'estacion', transform: 'translate(' + x + ' ' + y + ')' }, svg);
+    el('rect', { x: -98, y: -25, width: 196, height: 50, rx: 7 }, g);
+    el('circle', { cx: -72, cy: 0, r: 14, class: 'num' }, g);
+    txt(g, -72, 5.5, String(num), { 'text-anchor': 'middle', class: 'num-t' });
+    txt(g, -50, 6, nombre, { class: 'nom' });
+    return { g, x, y };
+  });
+  txt(svg, 500, 306, 'Cada día aprende', { class: 'centro', 'text-anchor': 'middle' });
+  txt(svg, 500, 342, 'del anterior', { class: 'centro', 'text-anchor': 'middle' });
+  txt(svg, 500, 382, 'Un ciclo de 6:00 a 24:00, todos los días', { class: 'centro-sub', 'text-anchor': 'middle' });
+  return {
+    tick(t) {
+      r.mover(t);
+      for (const p of placas) {
+        let cerca = false;
+        // Se enciende solo mientras una pieza pasa por el centro de la estación.
+        for (const q of r.pos) { if (Math.hypot(q.x - p.x, q.y - p.y) < 20) { cerca = true; break; } }
+        p.g.classList.toggle('cerca', cerca);
+      }
+    }
+  };
+};
+
+// Hoy: diez herramientas alrededor de WhatsApp.
+fabricas.hoy = svg => {
+  const cx = 500, cy = 312;
+  const nombres = ['Google Sheets', 'Metricool', 'Protecmedia', 'Photoshop', 'Canva', 'Apps de cada red', 'Mediastream', '«3Way»', 'NotebookLM', 'Word'];
+  const nodos = nombres.map((n, k) => {
+    const a = -Math.PI / 2 + k * 2 * Math.PI / nombres.length;
+    return { n, x: cx + Math.cos(a) * 372, y: cy + Math.sin(a) * 232 };
+  });
+  const capaL = el('g', {}, svg), capaI = el('g', {}, svg), capaN = el('g', {}, svg);
+  const movs = [];
+  function arista(a, b, k) {
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+    const off = (k % 2 ? 1 : -1) * (36 + (k * 13) % 40);
+    const d = 'M' + a.x.toFixed(1) + ' ' + a.y.toFixed(1) + 'Q' + (mx - dy / len * off).toFixed(1) + ' ' + (my + dx / len * off).toFixed(1) + ' ' + b.x.toFixed(1) + ' ' + b.y.toFixed(1);
+    const p = el('path', { d, class: 'enredo' }, capaL);
+    const tipo = ['nota', 'video', 'chat', 'arte', 'cable'][k % 5];
+    const it = item(capaI, tipo);
+    movs.push(recorrido(p, [it], { vel: 34 + (k * 7) % 30, sep: 0, borde: 30, fase: k * 57 }));
+  }
+  const centro = { x: cx, y: cy };
+  nodos.forEach((nd, k) => arista(nd, centro, k));
+  [[0, 1], [2, 3], [3, 4], [6, 7], [5, 1], [8, 9], [9, 0], [4, 5]].forEach(([a, b], j) => arista(nodos[a], nodos[b], j + 11));
+  nodos.forEach(nd => {
+    const g = el('g', { class: 'herramienta', transform: 'translate(' + nd.x.toFixed(1) + ' ' + nd.y.toFixed(1) + ')' }, capaN);
+    const w = nd.n.length * 8.3 + 26;
+    el('rect', { x: -w / 2, y: -17, width: w, height: 34, rx: 17 }, g);
+    txt(g, 0, 5, nd.n, { 'text-anchor': 'middle' });
+  });
+  const wa = el('g', { class: 'wa', transform: 'translate(' + cx + ' ' + cy + ')' }, capaN);
+  el('circle', { r: 64 }, wa);
+  txt(wa, 0, 2, 'WhatsApp', { class: 't1', 'text-anchor': 'middle' });
+  txt(wa, 0, 24, 'más de 10 grupos', { class: 't2', 'text-anchor': 'middle' });
+  txt(svg, 500, 628, 'Cada línea es una persona que copia, pega o reenvía.', { class: 'nota-escena', 'text-anchor': 'middle' });
+  return { tick(t) { movs.forEach(m => m.mover(t)); } };
+};
+
+// 1 · Fuentes: siete cintas que desembocan en la bandeja o en vigilancia.
+fabricas.fuentes = svg => {
+  const fuentes = [
+    { n: 'Portal unitel.bo', s: '~877 notas por día', tipo: ['nota'], v: false },
+    { n: 'Agencias', s: 'AFP, EFE, Storyful', tipo: ['cable'], v: false },
+    { n: 'Reporteros y grupos', s: 'WhatsApp y celular', tipo: ['chat', 'video'], v: false },
+    { n: 'Señal de TV', s: 'Clips de la transmisión', tipo: ['video'], v: false },
+    { n: 'Calendario', s: 'Feriados, efemérides, partidos', tipo: ['cal'], v: false },
+    { n: 'Redes sociales', s: 'Tendencias y virales', tipo: ['hash'], v: true },
+    { n: 'Competencia', s: 'El Deber, Red Uno', tipo: ['ojo'], v: true }
+  ];
+  const y0 = 64, dy = 70;
+  const capaC = el('g', {}, svg), capaI = el('g', {}, svg), capaP = el('g', {}, svg);
+  const movs = [];
+  fuentes.forEach((f, k) => {
+    const y = y0 + k * dy;
+    const ty = f.v ? 474 + (k - 5) * 40 : 150 + k * 34;
+    const d = 'M262 ' + y + 'H580C655 ' + y + ' 650 ' + ty + ' 726 ' + ty;
+    const base = cinta(capaC, d);
+    const its = poblar(capaI, base, f.tipo, 86);
+    movs.push(recorrido(base, its, { vel: 40 + k * 4, sep: 86, borde: 26, fase: k * 31 }));
+    placa(capaP, 18, y - 26, 226, 52, f.n, f.s, f.v ? 'alerta' : '');
+  });
+  // Cinta fantasma: la que se suma mañana.
+  const yf = y0 + 7 * dy;
+  el('path', { d: 'M262 ' + yf + 'H580', class: 'cinta-fantasma' }, capaC);
+  const gf = el('g', { transform: 'translate(18 ' + (yf - 22) + ')' }, capaP);
+  el('rect', { x: 0, y: 0, width: 226, height: 44, rx: 5, class: 'cinta-fantasma' }, gf);
+  txt(gf, 12, 27, '+ una cinta nueva', { class: 'nota-escena', style: 'font-family:var(--f-plancha);font-size:15px;font-weight:600' });
+  txt(svg, 274, yf - 9, 'cualquier fuente se suma como una cinta más', { class: 'nota-escena' });
+
+  // Bandeja de entrada.
+  const tb = el('g', { class: 'tolva', transform: 'translate(726 100)' }, svg);
+  el('rect', { class: 'fondo', x: 0, y: 0, width: 260, height: 286, rx: 8 }, tb);
+  txt(tb, 20, 36, 'Bandeja de entrada', { class: 't' });
+  txt(tb, 20, 58, 'todo lo que puede volverse pieza', { class: 's' });
+  const cifra = txt(tb, 20, 220, '1.200', { class: 'cifra' });
+  txt(tb, 20, 248, 'entradas de hoy', { class: 's' });
+  // Vigilancia: solo para mirar.
+  const vg = el('g', { class: 'vigia', transform: 'translate(726 410)' }, svg);
+  el('rect', { class: 'fondo', x: 0, y: 0, width: 260, height: 168, rx: 8 }, vg);
+  txt(vg, 20, 32, 'Vigilancia', { class: 't' });
+  txt(vg, 20, 52, 'solo para mirar: no pasa a producción', { class: 's' });
+  const alertas = ['El Deber publicó algo que no tenemos', 'Sube una tendencia en TikTok', 'Red Uno: 3 notas nuevas en portada', 'Tema del día: lo tenemos 2 h antes'];
+  const al1 = txt(vg, 20, 98, '', { class: 'alerta' });
+  const al2 = txt(vg, 20, 124, '', { class: 'alerta' });
+  return {
+    tick(t) {
+      movs.forEach(m => m.mover(t));
+      cifra.textContent = miles(1200 + Math.floor(t * 3.4));
+      const k = Math.floor(t / 3.2) % alertas.length;
+      const fase = (t % 3.2) / 3.2;
+      al1.textContent = alertas[k];
+      al2.textContent = alertas[(k + 1) % alertas.length];
+      al1.style.opacity = fase < .12 ? fase / .12 : 1;
+      al2.style.opacity = .45;
+    }
+  };
+};
+
+// 2 · Producción híbrida: dos carriles, una pieza, tres puertas.
+fabricas.produccion = svg => {
+  const capaC = el('g', {}, svg), capaI = el('g', {}, svg), capaP = el('g', {}, svg);
+  // Leyenda.
+  const ley = el('g', { class: 'leyenda', transform: 'translate(30 34)' }, svg);
+  el('use', { href: '#i-persona', transform: 'translate(10 10)' }, ley);
+  txt(ley, 28, 2, 'Persona');
+  el('use', { href: '#i-agente', transform: 'translate(120 12)' }, ley);
+  txt(ley, 140, 2, 'Agente de IA');
+  // Entrada.
+  placa(capaP, 18, 286, 108, 52, 'Bandeja', 'de entrada');
+  const arriba = cinta(capaC, 'M126 312C170 312 170 186 220 186H560C615 186 615 300 668 300');
+  const abajo = cinta(capaC, 'M126 312C170 312 170 444 220 444H560C615 444 615 326 668 326');
+  const itsA = poblar(capaI, arriba, ['video', 'nota', 'video'], 74);
+  const itsB = poblar(capaI, abajo, ['nota'], 64);
+  const rA = recorrido(arriba, itsA, { vel: 38, sep: 74, borde: 20 });
+  const rB = recorrido(abajo, itsB, { vel: 58, sep: 64, borde: 20 });
+  // Puestos de personas (arriba) y de agentes (abajo).
+  const personas = [['Clipeo de', 'la transmisión', 280], ['Reel o', 'producción propia', 400], ['Guion de', 'un nativo', 520]];
+  personas.forEach(([a, b, x]) => {
+    const g = el('g', { transform: 'translate(' + (x - 57) + ' 84)' }, capaP);
+    el('rect', { x: 0, y: 0, width: 114, height: 76, rx: 5, fill: '#fff', stroke: '#14161D', 'stroke-width': 1.5 }, g);
+    el('use', { href: '#i-persona', transform: 'translate(57 36)' }, g);
+    lineas(g, 57, 52, [a, b], { 'text-anchor': 'middle', class: 'nota-escena', style: 'font-size:12.5px;font-family:var(--f-plancha);font-weight:600;fill:#14161D' }, 14);
+  });
+  const agentes = [['Destacada', 'de la web', 260], ['Propuesta', 'competencia', 360], ['Video por', 'una fecha', 460], ['Texto para', 'cada red', 560]];
+  const puestos = agentes.map(([a, b, x]) => {
+    const g = el('g', { class: 'placa ia', transform: 'translate(' + (x - 46) + ' 474)' }, capaP);
+    el('rect', { class: 'fondo', x: 0, y: 0, width: 92, height: 82, rx: 5 }, g);
+    el('use', { href: '#i-agente', transform: 'translate(46 36)' }, g);
+    lineas(g, 46, 54, [a, b], { 'text-anchor': 'middle', class: 't', style: 'font-size:12.5px' }, 14);
+    return { g, x };
+  });
+  // La pieza.
+  const pz = el('g', { class: 'pieza-caja', transform: 'translate(668 262)' }, svg);
+  el('rect', { class: 'fondo', x: 0, y: 0, width: 96, height: 102, rx: 6 }, pz);
+  el('rect', { class: 'banda', x: 0, y: 0, width: 96, height: 28, rx: 6 }, pz);
+  el('rect', { class: 'banda', x: 0, y: 14, width: 96, height: 14 }, pz);
+  txt(pz, 48, 19, 'Pieza', { class: 't', 'text-anchor': 'middle' });
+  el('use', { href: '#i-arte', transform: 'translate(48 70)' }, pz);
+  lineas(pz, 48, 88, ['arte + texto'], { 'text-anchor': 'middle', class: 'nota-escena', style: 'font-size:11px' });
+  // Tres puertas según el riesgo.
+  const puertas = [['Rutina', 'automática si da verde', 150], ['Normal', 'una firma', 313], ['Sensible', 'dos firmas distintas', 476]];
+  const caminos = puertas.map(([t, s, y]) => {
+    const p = cinta(capaC, 'M764 313C800 313 800 ' + y + ' 846 ' + y);
+    placa(capaP, 846, y - 30, 146, 60, t, s, 'puerta');
+    return p;
+  });
+  const salidas = caminos.map((p, j) => recorrido(p, poblar(capaI, p, ['pieza'], 110), { vel: 34, sep: 110, borde: 18, fase: j * 37 }));
+  return {
+    tick(t) {
+      rA.mover(t); rB.mover(t); salidas.forEach(s => s.mover(t));
+      // Abajo: la nota entra a los agentes y sale convertida en arte.
+      rB.pos.forEach((q, k) => {
+        const href = q.x > 300 ? '#i-arte' : '#i-nota';
+        if (itsB[k].getAttribute('href') !== href) itsB[k].setAttribute('href', href);
+      });
+    }
+  };
+};
+
+// 3 · Base de control: el portón, el semáforo y las tres salidas.
+fabricas.control = svg => {
+  const capaC = el('g', {}, svg), capaI = el('g', {}, svg), capaF = el('g', {}, svg);
+  const principal = cinta(capaC, 'M30 330H700');
+  const salidas = {
+    v: cinta(capaC, 'M700 330H978'),
+    a: cinta(capaC, 'M700 330C748 330 748 178 804 178H872C924 178 924 330 978 330'),
+    r: cinta(capaC, 'M700 330C752 330 762 552 688 552H200')
+  };
+  const L1 = principal.getTotalLength();
+  const Ls = { v: salidas.v.getTotalLength(), a: salidas.a.getTotalLength(), r: salidas.r.getTotalLength() };
+  const C = L1 + Math.max(Ls.v, Ls.a, Ls.r) + 30;
+  const patron = ['v', 'v', 'a', 'v', 'r', 'v', 'v', 'a', 'v', 'v', 'r', 'v'];
+  const color = { n: '#8A90A2', v: '#15803D', a: '#B45309', r: '#D30000' };
+  const sep = 78, vel = 64;
+  const n = Math.ceil(C / sep);
+  const its = [];
+  for (let k = 0; k < n; k++) its.push(item(capaI, 'pieza'));
+  // El portón.
+  el('rect', { x: 330, y: 238, width: 320, height: 176, rx: 10, class: 'porton' }, capaF);
+  el('rect', { x: 330, y: 214, width: 320, height: 34, rx: 8, class: 'porton-techo' }, capaF);
+  txt(capaF, 490, 236, 'Base de control', { class: 'porton-titulo', 'text-anchor': 'middle' });
+  const haces = [[385, 'Specs de', 'cada red'], [455, 'Modera-', 'ción'], [525, 'Políticas', 'citadas'], [595, 'Derechos', 'y normas']].map(([x, a, b]) => {
+    const h = el('line', { x1: x, y1: 252, x2: x, y2: 404, class: 'haz' }, capaF);
+    lineas(capaF, x, 438, [a, b], { 'text-anchor': 'middle', class: 'haz-et' }, 15);
+    return { h, x };
+  });
+  // Semáforo.
+  const sem = el('g', { class: 'semaforo', transform: 'translate(676 170)' }, capaF);
+  el('rect', { x: 0, y: 0, width: 30, height: 88, rx: 8 }, sem);
+  const luces = { v: el('circle', { cx: 15, cy: 72, r: 10, fill: '#22C55E' }, sem), a: el('circle', { cx: 15, cy: 44, r: 10, fill: '#F59E0B' }, sem), r: el('circle', { cx: 15, cy: 16, r: 10, fill: '#FF3B3B' }, sem) };
+  // Destinos.
+  placa(capaF, 838, 352, 150, 52, 'Al cronograma', 'sigue la línea');
+  placa(capaF, 760, 98, 178, 52, 'Una persona revisa', 'lo dudoso, con todo a la vista');
+  placa(capaF, 22, 526, 178, 52, 'Vuelve a producción', 'con el motivo escrito', 'alerta');
+  txt(capaF, 470, 620, 'Cada motivo se guarda: la próxima vez, la IA lo advierte antes de llegar acá.', { class: 'nota-escena', 'text-anchor': 'middle' });
+  let ultima = 'v';
+  return {
+    tick(t) {
+      let mejor = Infinity;
+      for (let k = 0; k < n; k++) {
+        const it = its[k];
+        const s = ((t * vel + k * sep) % C + C) % C;
+        const sal = patron[k % patron.length];
+        let p, op = 1;
+        if (s < L1) {
+          p = principal.getPointAtLength(s);
+          op = Math.min(1, s / 26);
+          it.style.color = s > 600 ? color[sal] : color.n;
+          const dx = s - (L1 - 40);
+          if (dx >= 0 && dx < mejor) { mejor = dx; ultima = sal; }
+        } else {
+          const s2 = s - L1;
+          if (s2 > Ls[sal]) { it.style.opacity = 0; continue; }
+          p = salidas[sal].getPointAtLength(s2);
+          op = Math.min(1, (Ls[sal] - s2) / 26);
+          it.style.color = color[sal];
+        }
+        it.setAttribute('transform', 'translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ')');
+        it.style.opacity = op.toFixed(2);
+      }
+      // Los haces se encienden cuando una pieza pasa por debajo.
+      haces.forEach(hz => {
+        let on = false;
+        for (let k = 0; k < n && !on; k++) {
+          const s = ((t * vel + k * sep) % C + C) % C;
+          if (s < L1 && Math.abs(30 + s - hz.x) < 15) on = true;
+        }
+        hz.h.classList.toggle('escaneando', on);
+      });
+      for (const c in luces) luces[c].classList.toggle('encendida', c === ultima);
+    }
+  };
+};
+
+// 4 · Cronograma: la grilla de 15 minutos, la cuota y lo urgente.
+fabricas.cronograma = svg => {
+  const filas = ['Facebook Unitel', 'Facebook Telepaís', 'Instagram', 'TikTok', 'YouTube', 'X', 'Canal de WhatsApp'];
+  const x0 = 200, y0 = 64, cw = 64, ch = 50, nc = 12, T = 14;
+  for (let c = 0; c < nc; c++) {
+    const min = 10 * 60 + c * 15;
+    const et = Math.floor(min / 60) + ':' + String(min % 60).padStart(2, '0');
+    txt(svg, x0 + c * cw + cw / 2, y0 - 12, et, { class: 'hora' + (min % 60 === 0 ? ' entera' : ''), 'text-anchor': 'middle' });
+  }
+  filas.forEach((f, r) => {
+    txt(svg, x0 - 14, y0 + r * ch + ch / 2 + 5, f, { class: 'fila', 'text-anchor': 'end' });
+    for (let c = 0; c < nc; c++) el('rect', { x: x0 + c * cw + 2, y: y0 + r * ch + 2, width: cw - 4, height: ch - 4, rx: 4, class: 'hueco' }, svg);
+  });
+  [4, 8].forEach(c => el('line', { x1: x0 + c * cw, y1: y0 - 4, x2: x0 + c * cw, y2: y0 + filas.length * ch + 4, class: 'corte-hora' }, svg));
+  const plan = { 0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 1: [0, 2, 4, 6, 8, 10], 2: [0, 1, 3, 4, 5, 7, 9, 11], 3: [1, 5, 9], 4: [2, 8], 5: [0, 3, 6, 9], 6: [1, 4, 7, 10] };
+  const capa = el('g', {}, svg);
+  const piezas = [];
+  function crear(r, c, at, urgente) {
+    const g = el('g', { class: 'programada' + (urgente ? ' urgente' : '') }, capa);
+    el('rect', { class: 'cuerpo', x: 0, y: 0, width: cw - 14, height: ch - 14, rx: 3 }, g);
+    el('rect', { class: 'tope', x: 0, y: 0, width: cw - 14, height: 7, rx: 3 }, g);
+    el('path', { d: 'M7 18H' + (cw - 24) + 'M7 25H' + (cw - 34), stroke: '#14161D', 'stroke-width': 1.4 }, g);
+    const p = { g, r, c, at, mover: null };
+    piezas.push(p);
+    return p;
+  }
+  for (const r in plan) plan[r].forEach(c => crear(+r, c, .35 + c * .5 + (+r) * .06, false));
+  const urgente = crear(2, 7, 8.4, true);
+  const corrida = piezas.find(p => p.r === 2 && p.c === 7 && p !== urgente);
+  corrida.mover = 8.0;
+  // Ahora.
+  const ahora = el('g', { class: 'ahora' }, svg);
+  const linea = el('line', { x1: 0, y1: y0 - 2, x2: 0, y2: y0 + filas.length * ch + 2 }, ahora);
+  const etq = txt(ahora, 0, y0 + filas.length * ch + 20, 'ahora', { 'text-anchor': 'middle' });
+  // Medidores de cuota.
+  const yM = y0 + filas.length * ch + 52;
+  const med = [['Facebook Unitel', 'esta hora, con la sanción', 6], ['Instagram', 'por API, en 24 horas', 100], ['TikTok', 'sin virales ni internacionales', null]];
+  const medidores = med.map(([t, s, max], j) => {
+    const g = el('g', { transform: 'translate(' + (x0 - 180 + j * 268) + ' ' + yM + ')' }, svg);
+    txt(g, 0, 0, t, { class: 'medidor-t' });
+    const valor = txt(g, 236, 0, '', { class: 'medidor-t', 'text-anchor': 'end' });
+    el('rect', { x: 0, y: 10, width: 236, height: 10, rx: 5, class: 'medidor-fondo' }, g);
+    const lleno = el('rect', { x: 0, y: 10, width: 0, height: 10, rx: 5, class: 'medidor-lleno' }, g);
+    txt(g, 0, 40, s, { class: 'medidor-s' });
+    return { valor, lleno, max };
+  });
+  return {
+    tick(t) {
+      const tt = t % T;
+      const fin = tt > T - .8 ? Math.max(0, (T - tt) / .8) : 1;
+      let fb = 0, ig = 0;
+      for (const p of piezas) {
+        const e = suave((tt - p.at) / .45);
+        let x = x0 + p.c * cw + 7;
+        if (p.mover !== null) x += suave((tt - p.mover) / .5) * cw;
+        const y = y0 + p.r * ch + 7 - (1 - e) * 34;
+        p.g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
+        p.g.style.opacity = (e * fin).toFixed(2);
+        if (e > .5) { if (p.r === 0 && p.c < 4) fb++; if (p.r === 2) ig++; }
+      }
+      const xa = x0 + (tt / T) * nc * cw;
+      linea.setAttribute('x1', xa); linea.setAttribute('x2', xa); etq.setAttribute('x', xa);
+      const igDia = 55 + ig;
+      medidores[0].valor.textContent = fb + ' de 6';
+      medidores[0].lleno.setAttribute('width', (236 * fb / 6).toFixed(1));
+      medidores[0].lleno.classList.toggle('limite', fb >= 6);
+      medidores[1].valor.textContent = igDia + ' de 100';
+      medidores[1].lleno.setAttribute('width', (236 * igDia / 100).toFixed(1));
+      medidores[2].valor.textContent = 'con límites';
+      medidores[2].lleno.setAttribute('width', 236 * .3);
+      medidores[2].lleno.classList.add('limite');
+    }
+  };
+};
+
+// 5 · Conexiones: el paquete, el conector y los destinos.
+fabricas.conexiones = svg => {
+  const capaC = el('g', {}, svg), capaI = el('g', {}, svg), capaP = el('g', {}, svg);
+  // Paquete listo.
+  const pq = el('g', { transform: 'translate(24 252)' }, capaP);
+  [[16, 0], [8, 8], [0, 16]].forEach(([dx, dy]) => el('rect', { x: dx, y: dy, width: 120, height: 84, rx: 5, fill: '#fff', stroke: '#14161D', 'stroke-width': 1.5 }, pq));
+  el('use', { href: '#i-arte', transform: 'translate(36 72)' }, pq);
+  el('path', { d: 'M62 52H108M62 60H96M62 68H104', stroke: '#14161D', 'stroke-width': 1.5 }, pq);
+  txt(pq, 0, 130, 'Paquete listo', { class: 'medidor-t' });
+  txt(pq, 0, 150, 'arte, texto y hora', { class: 'medidor-s' });
+  const entrada = cinta(capaC, 'M168 320H362');
+  const rE = recorrido(entrada, poblar(capaI, entrada, ['pieza'], 66), { vel: 46, sep: 66, borde: 16 });
+  // Conector.
+  const cn = el('g', { class: 'conector', transform: 'translate(362 182)' }, capaP);
+  el('rect', { class: 'caja', x: 0, y: 0, width: 200, height: 276, rx: 10 }, cn);
+  txt(cn, 18, 34, 'Conector', { class: 'titulo' });
+  const ranuras = [['Manual', 'una persona publica'], ['Proveedor', 'contratado'], ['API propia', 'red por red']].map(([a, b], j) => {
+    const r = el('rect', { class: 'ranura', x: 14, y: 54 + j * 70, width: 172, height: 58, rx: 6 }, cn);
+    txt(cn, 28, 78 + j * 70, a, { class: 'rt' });
+    txt(cn, 28, 98 + j * 70, b, { class: 'rs' });
+    return r;
+  });
+  const quien = el('g', { transform: 'translate(462 506)' }, capaP);
+  el('use', { href: '#i-persona', transform: 'translate(0 0)' }, quien);
+  lineas(quien, 0, 22, ['confirma con', 'el enlace'], { 'text-anchor': 'middle', class: 'medidor-s' }, 15);
+  // Destinos.
+  const nombres = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'X', 'Canal de WhatsApp', 'Portal unitel.bo'];
+  const destinos = nombres.map((n, j) => {
+    const y = 92 + j * 76;
+    const p = el('path', { d: 'M562 320C680 320 700 ' + y + ' 792 ' + y, class: 'salida' }, capaC);
+    const g = el('g', { class: 'destino', transform: 'translate(792 ' + (y - 24) + ')' }, capaP);
+    el('rect', { class: 'fondo', x: 0, y: 0, width: 196, height: 48, rx: 6 }, g);
+    txt(g, 14, 30, n, { class: 't' });
+    txt(g, 178, 30, '✓', { class: 'ok', 'text-anchor': 'end' });
+    // Un pulso por destino, escalonados para que no salgan todos juntos del conector.
+    const largo = p.getTotalLength();
+    const r = recorrido(p, [item(capaI, 'pieza')], { vel: 110, sep: 0, borde: 10, fase: (j * 3 % 7) / 7 * largo });
+    return { g, r };
+  });
+  return {
+    tick(t) {
+      rE.mover(t);
+      const activo = Math.floor(t / 4) % 3;
+      ranuras.forEach((r, j) => r.classList.toggle('activa', j === activo));
+      quien.style.opacity = activo === 0 ? 1 : 0;
+      quien.style.transition = 'opacity .35s';
+      destinos.forEach(d => {
+        d.r.mover(t);
+        const llego = d.r.pos.some(q => q.s > d.r.L - 26);
+        d.g.classList.toggle('llego', llego);
+      });
+    }
+  };
+};
+
+// 6 · Analítica: el gráfico de énfasis y la cinta de regreso.
+fabricas.analitica = svg => {
+  const capaC = el('g', {}, svg), capaI = el('g', {}, svg), capaP = el('g', {}, svg);
+  el('rect', { x: 40, y: 20, width: 920, height: 330, rx: 10, class: 'tarjeta' }, capaP);
+  txt(capaP, 72, 62, 'Alcance por tipo de pieza', { class: 'graf-t' });
+  txt(capaP, 72, 86, 'Ejemplo ilustrativo (índice). Los números reales salen de la ingesta de Meta.', { class: 'graf-s' });
+  const datos = [['Destacadas', 82], ['Virales', 64], ['Deportes', 57], ['Servicios', 41], ['Política', 29]];
+  const x0 = 220, wmax = 600;
+  el('line', { x1: x0, y1: 108, x2: x0, y2: 330, class: 'base-eje' }, capaP);
+  const barras = datos.map(([c, v], j) => {
+    const y = 114 + j * 44;
+    txt(capaP, 72, y + 17, c, { class: 'graf-cat' });
+    const b = el('rect', { x: x0, y, width: 0, height: 24, rx: 4, class: 'barra' + (j === 0 ? ' enfasis' : '') }, capaP);
+    const tt = el('title', {}, b); tt.textContent = c + ': ' + v + ' (ejemplo)';
+    const et = txt(capaP, x0 + 8, y + 17, String(v), { class: 'graf-val' });
+    return { b, et, v };
+  });
+  // Mezcla del día.
+  el('rect', { x: 40, y: 368, width: 920, height: 112, rx: 10, class: 'tarjeta' }, capaP);
+  txt(capaP, 72, 404, 'Mezcla del día', { class: 'graf-t', style: 'font-size:17px' });
+  txt(capaP, 72, 426, 'Ejemplo', { class: 'graf-s' });
+  const mx = 220, mw = 700, duro = .36;
+  el('rect', { x: mx, y: 430, width: mw * duro - 1, height: 26, rx: 4, class: 'mezcla-duro' }, capaP);
+  el('rect', { x: mx + mw * duro + 1, y: 430, width: mw * (1 - duro) - 1, height: 26, rx: 4, class: 'mezcla-resto' }, capaP);
+  txt(capaP, mx + 10, 448, 'Duro 36 %', { class: 'mezcla-et', fill: '#fff' });
+  txt(capaP, mx + mw - 12, 448, 'Resto 64 %: virales, deporte, servicios', { class: 'mezcla-et', fill: '#14161D', 'text-anchor': 'end' });
+  const xt = mx + mw * .4;
+  el('line', { x1: xt, y1: 404, x2: xt, y2: 462, class: 'tope-linea' }, capaP);
+  txt(capaP, xt + 6, 414, 'tope 40 %', { class: 'tope-et' });
+  // De regreso a Fuentes.
+  const regreso = cinta(capaC, 'M960 566H262');
+  const rR = recorrido(regreso, poblar(capaI, regreso, ['dato'], 92), { vel: 46, sep: 92, borde: 20 });
+  const g1 = el('g', { class: 'placa', transform: 'translate(40 540)' }, capaP);
+  el('rect', { class: 'fondo', x: 0, y: 0, width: 222, height: 54, rx: 5 }, g1);
+  el('circle', { cx: 28, cy: 27, r: 15, fill: '#D30000' }, g1);
+  txt(g1, 28, 32.5, '1', { 'text-anchor': 'middle', fill: '#fff', style: 'font-size:16px;font-weight:700' });
+  txt(g1, 54, 24, 'Fuentes de mañana', { class: 't' });
+  txt(g1, 54, 42, 'vuelve a empezar', { class: 's' });
+  txt(svg, 610, 530, 'Lo que rindió pesa más mañana; lo que no, se ajusta.', { class: 'nota-escena', 'text-anchor': 'middle' });
+  return {
+    tick(t) {
+      const e = suave(t / 1.4);
+      barras.forEach(({ b, et, v }) => {
+        const w = wmax * v / 100 * e;
+        b.setAttribute('width', w.toFixed(1));
+        et.setAttribute('x', (x0 + w + 10).toFixed(1));
+      });
+      rR.mover(t);
+    }
+  };
+};
+
+// Un día en la fábrica: la destacada, paso a paso.
+fabricas.dia = svg => {
+  const pasos = [
+    ['10:42', '1 Fuentes', 'La redacción publica una nota en unitel.bo'],
+    ['10:50', '1 Fuentes', 'La cinta del portal la detecta en el sitemap'],
+    ['10:51', '2 Producción', 'Un agente arma el arte en 4:5, 9:16 y 1:1'],
+    ['10:51', '3 Control', 'Formato, palabras prohibidas y titular: verde'],
+    ['11:00', '3 Control', 'Coordinación aprueba 20 destacadas de una vez'],
+    ['11:15', '4 Cronograma', 'Toma el hueco libre sin pasar de 6 por hora'],
+    ['11:15', '5 Conexiones', 'Sale a Facebook e Instagram por el conector'],
+    ['06:00', '6 Analítica', 'Al día siguiente, sus números ajustan la prioridad']
+  ];
+  const y0 = 48, dy = 74, xv = 196;
+  el('line', { x1: xv, y1: y0, x2: xv, y2: y0 + (pasos.length - 1) * dy, class: 'dia-via' }, svg);
+  const filas = pasos.map(([h, e, q], j) => {
+    const y = y0 + j * dy;
+    const g = el('g', { class: 'dia-fila' }, svg);
+    txt(g, 40, y + 7, h, { class: 'hora-dia' });
+    el('circle', { cx: xv, cy: y, r: 9, class: 'nodo' }, g);
+    const et = el('g', { class: 'etiqueta', transform: 'translate(222 ' + (y - 15) + ')' }, g);
+    el('rect', { x: 0, y: 0, width: 126, height: 30, rx: 4 }, et);
+    txt(et, 12, 20, e, {});
+    txt(g, 366, y + 6, q, { class: 'que' });
+    return g;
+  });
+  txt(svg, 40, y0 + (pasos.length - 1) * dy + 46, 'el día siguiente', { class: 'nota-escena', style: 'font-size:12.5px' });
+  const ficha = el('rect', { x: xv - 13, y: 0, width: 26, height: 20, rx: 3, fill: '#D30000' }, svg);
+  const paso = 1.7, ciclo = pasos.length + 2;
+  return {
+    tick(t) {
+      const k = Math.floor(t / paso) % ciclo;
+      const actual = Math.min(k, pasos.length - 1);
+      const f = suave((t % paso) / .55);
+      const desde = Math.max(0, actual - (k < pasos.length && k > 0 ? 1 : 0));
+      const y = y0 + (desde + (actual - desde) * f) * dy;
+      ficha.setAttribute('y', (y - 10).toFixed(1));
+      filas.forEach((g, j) => {
+        g.classList.toggle('hecho', j < actual || k >= pasos.length);
+        g.classList.toggle('actual', j === actual && k < pasos.length);
+      });
+    }
+  };
+};
+
+/* ---------- montaje ---------- */
+const pista = document.querySelector('.pista');
+const diapos = Array.from(document.querySelectorAll('.diapo'));
+const N = diapos.length;
+pista.style.setProperty('--n', N);
+document.getElementById('num-total').textContent = N;
+const escenas = diapos.map(d => {
+  const tipo = d.dataset.escena;
+  const svg = d.querySelector('svg.escena');
+  return tipo && svg && fabricas[tipo] ? fabricas[tipo](svg) : null;
+});
+
+// Las paradas de la cinta: una por diapositiva.
+const paradas = document.querySelector('.paradas');
+const botones = diapos.map((d, k) => {
+  const li = document.createElement('li');
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'parada';
+  b.innerHTML = '<span class="np">' + (k + 1) + '</span><span class="nom-parada"></span>';
+  b.querySelector('.nom-parada').textContent = d.dataset.nombre;
+  b.setAttribute('aria-label', (k + 1) + ': ' + d.dataset.nombre);
+  b.addEventListener('click', () => ir(k));
+  li.appendChild(b); paradas.appendChild(li);
+  return b;
+});
+const rodillos = document.querySelector('.rodillos');
+function armarRodillos() {
+  rodillos.innerHTML = '';
+  const n = Math.max(8, Math.floor(window.innerWidth / 46));
+  for (let k = 0; k < n; k++) { const r = document.createElement('span'); r.className = 'rodillo'; rodillos.appendChild(r); }
+}
+const cintaNav = document.querySelector('.cinta-nav');
+const ficha = document.querySelector('.ficha');
+function ubicarFicha() {
+  const b = botones[actual].getBoundingClientRect();
+  ficha.style.setProperty('--x', (b.left + b.width / 2) + 'px');
+}
+
+let actual = 0, inicio = performance.now(), pausado = false, tPausa = 0;
+const anuncio = document.getElementById('anuncio');
+function ir(k, primera) {
+  k = Math.max(0, Math.min(N - 1, k));
+  if (k === actual && !primera) return;
+  const atras = k < actual;
+  actual = k;
+  pista.style.setProperty('--i', k);
+  diapos.forEach((d, j) => {
+    const activa = j === k;
+    d.classList.toggle('activa', activa);
+    d.inert = !activa;
+    d.setAttribute('aria-label', (j + 1) + ' de ' + N + ': ' + d.dataset.nombre);
+  });
+  botones.forEach((b, j) => { if (j === k) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+  document.body.dataset.tono = diapos[k].classList.contains('oscura') ? 'oscuro' : 'claro';
+  document.getElementById('num-actual').textContent = k + 1;
+  if (!primera) {
+    cintaNav.classList.remove('rodando', 'atras');
+    void cintaNav.offsetWidth;
+    cintaNav.classList.add('rodando');
+    cintaNav.classList.toggle('atras', atras);
+  }
+  ubicarFicha();
+  const titulo = diapos[k].querySelector('h1, h2');
+  anuncio.textContent = (k + 1) + ' de ' + N + ': ' + (titulo ? titulo.textContent : diapos[k].dataset.nombre);
+  try { history.replaceState(null, '', '#' + (k + 1)); } catch (e) { /* archivo local sin historial: no importa */ }
+  inicio = performance.now();
+  if (reducir || pausado) dibujarQuieto();
+}
+cintaNav.addEventListener('animationend', () => cintaNav.classList.remove('rodando', 'atras'));
+
+// Con movimiento reducido (o en pausa) se dibuja un cuadro representativo de cada escena.
+function dibujarQuieto() {
+  const e = escenas[actual];
+  if (e) e.tick(pausado ? tPausa : 6);
+}
+function bucle(ahora) {
+  if (!reducir && !pausado) {
+    const e = escenas[actual];
+    if (e) e.tick((ahora - inicio) / 1000);
+  }
+  requestAnimationFrame(bucle);
+}
+
+/* ---------- controles ---------- */
+const btnPausa = document.getElementById('btn-pausa');
+function alternarPausa() {
+  pausado = !pausado;
+  if (pausado) tPausa = (performance.now() - inicio) / 1000;
+  else inicio = performance.now() - tPausa * 1000;
+  document.body.classList.toggle('pausado', pausado);
+  btnPausa.setAttribute('aria-pressed', String(pausado));
+  btnPausa.textContent = pausado ? 'Seguir animación' : 'Pausar animación';
+}
+btnPausa.addEventListener('click', alternarPausa);
+function pantallaCompleta() {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen().catch(() => {});
+}
+document.getElementById('btn-pantalla').addEventListener('click', pantallaCompleta);
+const ayuda = document.getElementById('ayuda');
+document.getElementById('btn-ayuda').addEventListener('click', () => ayuda.showModal());
+
+document.addEventListener('keydown', ev => {
+  if (ayuda.open || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+  const enBoton = ev.target instanceof HTMLButtonElement;
+  switch (ev.key) {
+    case 'ArrowRight': case 'PageDown': ir(actual + 1); break;
+    case ' ': if (enBoton) return; ir(ev.shiftKey ? actual - 1 : actual + 1); break;
+    case 'ArrowLeft': case 'PageUp': ir(actual - 1); break;
+    case 'Home': ir(0); break;
+    case 'End': ir(N - 1); break;
+    case 'f': case 'F': pantallaCompleta(); break;
+    case 'p': case 'P': alternarPausa(); break;
+    case '?': ayuda.showModal(); break;
+    default: return;
+  }
+  ev.preventDefault();
+});
+
+// Deslizar en una tableta.
+let x0t = null;
+document.addEventListener('pointerdown', ev => { if (ev.pointerType !== 'mouse') x0t = ev.clientX; });
+document.addEventListener('pointerup', ev => {
+  if (x0t === null) return;
+  const dx = ev.clientX - x0t; x0t = null;
+  if (Math.abs(dx) > 60) ir(actual + (dx < 0 ? 1 : -1));
+});
+
+window.addEventListener('resize', () => { armarRodillos(); ubicarFicha(); });
+
+armarRodillos();
+const desdeUrl = parseInt((location.hash || '').slice(1), 10);
+actual = -1;
+ir(Number.isFinite(desdeUrl) ? desdeUrl - 1 : 0, true);
+if (reducir) escenas.forEach(e => e && e.tick(6));
+requestAnimationFrame(bucle);
+})();
+</script>
+</body>
+</html>
